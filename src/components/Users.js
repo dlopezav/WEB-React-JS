@@ -1,22 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { UserContext } from '../contexts/userContext.js';
 import { postServiceData } from '../util.js';
+import NavBar from './NavBar.js';
 
-function Users({ getToken }) {
+function Users({getToken}) {
     const [users, setUsers] = useState([]);
+    const {user, updateUser } = useContext(UserContext); // Corregir el acceso al contexto
+
     const navigate = useNavigate();
 
     useEffect(() => {
-        const tokenExists = getToken();
+        // Reemplazar getToken con user.token si está disponible en tu contexto
+        const tokenExists = getToken()
         if (!tokenExists) {
             navigate('/');
         } else {
-            // Fetch users data
             fetchUsers();
         }
-    }, [getToken, navigate]);
+    }, [user, navigate, getToken]);
 
-    // Función para simular la obtención de datos de usuarios
     const fetchUsers = () => {
         const params = { ok: 1 };
         postServiceData('users', params)
@@ -29,25 +32,41 @@ function Users({ getToken }) {
                 }
             })
             .catch((error) => {
-                // Maneja los errores si ocurren durante la solicitud
                 console.error("Error fetching users:", error);
                 setUsers([]);
                 console.log("Problems to load users");
             });
     };
 
+    const handleEditUser = (userId) => {
+        updateUser(userId);
+        navigate('/user');
+    };
+
+    const deleteUser = (userId) => {
+        const params = { id: userId };
+        postServiceData('deleteUser', params)
+            .then((data) => {
+                if (data) {
+                    console.log("well deleted user data");
+                    fetchUsers();
+                } else {
+                    console.log("Invalid user data");
+                }
+            })
+            .catch((error) => {
+                console.error("Error deleting user:", error);
+                console.log("Problems to delete user");
+            });
+    };
+
+    const createUser = () => {
+        navigate('/user', { state: { userId: -1 } });
+    }
+
     return (
         <div>
-            <nav className="navbar navbar-expand-md navbar-dark bg-dark">
-                <div className="container">
-                    <div className="collapse navbar-collapse" id="navbar1">
-                        <ul className="navbar-nav ml-auto">
-                            <li className="nav-item"> <button className="btn btn-link nav-link text-white" >Users</button></li>
-                            <li className="nav-item"> <button className="btn btn-link nav-link text-white" >Books</button></li>
-                        </ul>
-                    </div>
-                </div>
-            </nav>
+            <NavBar></NavBar>
             <div className="py-3">
                 <div className="container">
                     <div className="row">
@@ -74,17 +93,14 @@ function Users({ getToken }) {
                                                 <td>{user.person_id}</td>
                                                 <td>{user.person_firstname}</td>
                                                 <td>{user.person_lastname}</td>
-                                                <td>{new Date(user.person_birthdate).toISOString().slice(0, 10)}</td>
+                                                <td>{new Date(user.person_birthdate).toLocaleDateString()}</td>
                                                 <td className="text-center">
-                                                    <form action="editUser" method="POST">
-                                                        <input type="hidden" name="id" value={user.person_id} />
-                                                        <button name="edit" className="btn" >
-                                                            <img src="img/edit.png" alt="edit" className="icon" />
-                                                        </button>
-                                                        <button name="delete" className="btn" >
-                                                            <img src="img/delete.png" alt="delete" className="icon" />
-                                                        </button>
-                                                    </form>
+                                                    <button onClick={() => handleEditUser(user.person_id)} className="btn" >
+                                                        <img src="img/edit.png" alt="edit" className="icon" />
+                                                    </button>
+                                                    <button name="delete" className="btn" onClick={() => deleteUser(user.person_id)} >
+                                                        <img src="img/delete.png" alt="delete" className="icon" />
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -93,9 +109,7 @@ function Users({ getToken }) {
                                         <tr id="addNew">
                                             <td colSpan="4"></td>
                                             <td className="text-center">
-                                                <form action="createUser" method="POST">
-                                                    <button className="btn"><img src="img/plus.png" alt="add" className="icon" /></button>
-                                                </form>
+                                                <button onClick={createUser} className="btn"><img src="img/plus.png" alt="add" className="icon" /></button>
                                             </td>
                                         </tr>
                                     </tfoot>

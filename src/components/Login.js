@@ -21,14 +21,13 @@ function Login({ setToken, removeToken, getToken }) {
   // Submit handler
   const handleSubmit = (event) => {
     event.preventDefault();
-    
     const params = {login: login, password: password};
-    console.log("ready");
     postServiceData("authenticate", params)
     .then((data) => {
       console.log("data is : " + data); 
       if (data && data.ok === 1) {
         setCanLogin(true);
+        
       } else {
         setLogin('');
         setPassword('');
@@ -46,11 +45,15 @@ function Login({ setToken, removeToken, getToken }) {
     }
   }, [getToken, navigate]);
 
-  if (canLogin) {
-    removeToken();
-    setToken('Pipe was here');
-    navigate('/users', { replace: true });
-  }
+  useEffect(() => {
+    if (canLogin) {
+      removeToken();
+      setToken('Pipe was here');
+      navigate('/users', { replace: true });
+    }
+  }, [canLogin, removeToken, setToken, navigate]);
+
+  
 
   return (
     <div className="py-5">

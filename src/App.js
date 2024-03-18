@@ -3,6 +3,10 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import './App.css';
 import Login from './components/Login';
 import Users from './components/Users';
+import User from './components/User';
+import Books from './components/Books';
+import Book from './components/Book';
+import { UserProvider } from './contexts/userContext';
 
 class App extends Component {
   setToken = (userToken) => {
@@ -23,12 +27,17 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <Router>
-          <Routes>
-            <Route exact path="/" element={<Login setToken={this.setToken} removeToken={this.removeToken} getToken={this.getToken} />} />
-            <Route exact path="/users" element={<Users getToken={this.getToken} />} />
-          </Routes>
-        </Router>
+        <UserProvider>
+          <Router>
+            <Routes>
+              <Route exact path="/" element={<Login setToken={this.setToken} removeToken={this.removeToken} getToken={this.getToken} />} />
+              <Route exact path="/user" element={<User getToken={this.getToken} />} />
+              <Route exact path="/books" element={<Books getToken={this.getToken} />} />
+              <Route exact path="/book" element={<Book getToken={this.getToken} />} />
+              <Route exact path="/users" element={<Users getToken={this.getToken} />} />
+            </Routes>
+          </Router>
+        </UserProvider>
       </div>
     );
   }
